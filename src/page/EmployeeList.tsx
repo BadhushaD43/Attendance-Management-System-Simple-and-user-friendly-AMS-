@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { MdAdd, MdClose, MdSearch, MdEdit, MdDelete } from 'react-icons/md'
+import { MdAdd, MdClose, MdSearch, MdEdit, MdDelete, MdInfo } from 'react-icons/md'
 import type { Employee, Department } from '../types'
 
 interface EmployeeListProps {
@@ -11,7 +11,16 @@ interface EmployeeListProps {
 }
 
 const emptyForm = (): Omit<Employee, 'id'> => ({
-  name: '', emp_id: '', phone: '', email: '', department: ''
+  name: '',
+  emp_id: '',
+  phone: '',
+  email: '',
+  department: '',
+  bank_account_no: '',
+  bank_details: '',
+  address: '',
+  pan_no: '',
+  pf_no: ''
 })
 
 function generateEmpId(employees: Employee[]): string {
@@ -34,6 +43,7 @@ export default function EmployeeList({
   const [form, setForm] = useState(emptyForm())
   const [editingEmployeeId, setEditingEmployeeId] = useState<string | null>(null)
   const [errors, setErrors] = useState<Partial<Record<keyof Omit<Employee, 'id'>, string>>>({})
+  const [viewEmployee, setViewEmployee] = useState<Employee | null>(null)
 
   const filtered = employees.filter(e =>
     e.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -100,6 +110,11 @@ export default function EmployeeList({
         phone: form.phone.trim(),
         email: form.email.trim(),
         department: form.department,
+        bank_account_no: form.bank_account_no?.trim(),
+        bank_details: form.bank_details?.trim(),
+        address: form.address?.trim(),
+        pan_no: form.pan_no?.trim(),
+        pf_no: form.pf_no?.trim(),
       })
     } else {
       // Add Mode
@@ -111,6 +126,11 @@ export default function EmployeeList({
         phone: form.phone.trim(),
         email: form.email.trim(),
         department: form.department,
+        bank_account_no: form.bank_account_no?.trim(),
+        bank_details: form.bank_details?.trim(),
+        address: form.address?.trim(),
+        pan_no: form.pan_no?.trim(),
+        pf_no: form.pf_no?.trim(),
       })
     }
 
@@ -134,6 +154,11 @@ export default function EmployeeList({
       phone: emp.phone,
       email: emp.email,
       department: emp.department,
+      bank_account_no: emp.bank_account_no || '',
+      bank_details: emp.bank_details || '',
+      address: emp.address || '',
+      pan_no: emp.pan_no || '',
+      pf_no: emp.pf_no || '',
     })
     setErrors({})
     setEditingEmployeeId(emp.id)
@@ -192,6 +217,13 @@ export default function EmployeeList({
                   <td>{e.department}</td>
                   <td>
                     <div style={{ display: 'flex', gap: 8 }}>
+                      <button
+                        onClick={() => setViewEmployee(e)}
+                        title="View Details"
+                        style={{ background: 'none', border: 'none', color: 'var(--blue-mid)', cursor: 'pointer', padding: 4 }}
+                      >
+                        <MdInfo size={18} />
+                      </button>
                       <button
                         className="btn-edit-small"
                         onClick={() => openEditDialog(e)}
@@ -314,10 +346,101 @@ export default function EmployeeList({
                 {errors.department && <span style={{ color: '#e74c3c', fontSize: 12 }}>{errors.department}</span>}
               </div>
 
+              {/* Address */}
+              <div className="form-group">
+                <label>Address</label>
+                <textarea
+                  placeholder="Enter full address"
+                  value={form.address || ''}
+                  onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
+                  rows={2}
+                  style={{ width: '100%', padding: '10px 14px', border: '1.5px solid #dce1e7', borderRadius: 8, fontSize: 14, outline: 'none', resize: 'vertical', fontFamily: 'inherit' }}
+                />
+              </div>
+
+              {/* PAN & PF (Two columns) */}
+              <div style={{ display: 'flex', gap: 12 }}>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label>PAN Number</label>
+                  <input
+                    type="text"
+                    placeholder="Enter PAN"
+                    value={form.pan_no || ''}
+                    onChange={e => setForm(f => ({ ...f, pan_no: e.target.value.toUpperCase().slice(0, 10) }))}
+                  />
+                </div>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label>PF Number</label>
+                  <input
+                    type="text"
+                    placeholder="Enter PF Number"
+                    value={form.pf_no || ''}
+                    onChange={e => setForm(f => ({ ...f, pf_no: e.target.value.toUpperCase() }))}
+                  />
+                </div>
+              </div>
+
+              {/* Bank Details */}
+              <div style={{ display: 'flex', gap: 12 }}>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label>Bank Account Number</label>
+                  <input
+                    type="text"
+                    placeholder="Enter account number"
+                    value={form.bank_account_no || ''}
+                    onChange={e => {
+                      const cleanVal = e.target.value.replace(/\D/g, '')
+                      setForm(f => ({ ...f, bank_account_no: cleanVal }))
+                    }}
+                  />
+                </div>
+                <div className="form-group" style={{ flex: 1 }}>
+                  <label>Bank Details (Name/Branch)</label>
+                  <input
+                    type="text"
+                    placeholder="Bank name & branch"
+                    value={form.bank_details || ''}
+                    onChange={e => setForm(f => ({ ...f, bank_details: e.target.value }))}
+                  />
+                </div>
+              </div>
+
               <button type="submit" className="btn-primary" style={{ marginTop: 8 }}>
                 {editingEmployeeId ? 'Save Changes' : 'Add Employee'}
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {viewEmployee && (
+        <div className="modal-overlay" onClick={() => setViewEmployee(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Employee Profile Details</h3>
+              <button className="modal-close" onClick={() => setViewEmployee(null)}><MdClose size={20} /></button>
+            </div>
+            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, borderBottom: '1px solid var(--grey-light)', paddingBottom: 16 }}>
+                <div className="emp-avatar" style={{ width: 50, height: 50, borderRadius: '50%', background: 'var(--blue-mid)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, fontWeight: 700 }}>
+                  {viewEmployee.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <h4 style={{ fontSize: 18, fontWeight: 800, color: 'var(--blue-dark)' }}>{viewEmployee.name}</h4>
+                  <span className="badge badge-overtime" style={{ marginTop: 4 }}>ID: {viewEmployee.emp_id}</span>
+                </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 14, fontSize: 13 }}>
+                <div><span style={{ color: 'var(--grey-mid)', display: 'block', marginBottom: 2 }}>Department</span><strong style={{ color: 'var(--blue-dark)' }}>{viewEmployee.department}</strong></div>
+                <div><span style={{ color: 'var(--grey-mid)', display: 'block', marginBottom: 2 }}>Email</span><strong style={{ color: 'var(--blue-dark)' }}>{viewEmployee.email}</strong></div>
+                <div><span style={{ color: 'var(--grey-mid)', display: 'block', marginBottom: 2 }}>Phone</span><strong style={{ color: 'var(--blue-dark)' }}>{viewEmployee.phone || '—'}</strong></div>
+                <div><span style={{ color: 'var(--grey-mid)', display: 'block', marginBottom: 2 }}>PAN Number</span><strong style={{ color: 'var(--blue-dark)' }}>{viewEmployee.pan_no || '—'}</strong></div>
+                <div><span style={{ color: 'var(--grey-mid)', display: 'block', marginBottom: 2 }}>PF Number</span><strong style={{ color: 'var(--blue-dark)' }}>{viewEmployee.pf_no || '—'}</strong></div>
+                <div><span style={{ color: 'var(--grey-mid)', display: 'block', marginBottom: 2 }}>Bank Account</span><strong style={{ color: 'var(--blue-dark)' }}>{viewEmployee.bank_account_no || '—'}</strong></div>
+                <div style={{ gridColumn: 'span 2' }}><span style={{ color: 'var(--grey-mid)', display: 'block', marginBottom: 2 }}>Bank Details</span><strong style={{ color: 'var(--blue-dark)' }}>{viewEmployee.bank_details || '—'}</strong></div>
+                <div style={{ gridColumn: 'span 2' }}><span style={{ color: 'var(--grey-mid)', display: 'block', marginBottom: 2 }}>Address</span><strong style={{ color: 'var(--blue-dark)' }}>{viewEmployee.address || '—'}</strong></div>
+              </div>
+            </div>
           </div>
         </div>
       )}

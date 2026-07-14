@@ -13,6 +13,11 @@ export interface Employee {
   phone: string
   email: string
   department: string
+  bank_account_no?: string
+  bank_details?: string
+  address?: string
+  pan_no?: string
+  pf_no?: string
 }
 
 export interface Department {

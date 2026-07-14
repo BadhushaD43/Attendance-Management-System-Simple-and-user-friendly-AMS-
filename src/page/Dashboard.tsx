@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import type { DailyAttendance, Employee, LeaveRecord } from '../types'
+import { MdPeople, MdCheckCircle, MdEventNote, MdAccessTime } from 'react-icons/md'
 
 interface DashboardProps {
   attendance: DailyAttendance[]
@@ -83,6 +84,60 @@ export default function Dashboard({ attendance, employees, leaves }: DashboardPr
     return rows
   }, [todayRecords, manualLeavesToday, employees, today])
 
+  // Helper to format date label
+  const formatDateLabel = (dateStr: string) => {
+    const parts = dateStr.split('-')
+    if (parts.length < 3) return dateStr
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    const monthIdx = parseInt(parts[1], 10) - 1
+    const day = parseInt(parts[2], 10)
+    if (monthIdx >= 0 && monthIdx < 12) {
+      return `${day} ${months[monthIdx]}`
+    }
+    return dateStr
+  }
+
+  // Get chronological last 5 days that have attendance records
+  const last5Days = useMemo(() => {
+    const datesSet = new Set(attendance.map(a => a.date))
+    const dates = Array.from(datesSet)
+    dates.sort() // chronological asc
+    
+    // If we have fewer than 5 active days, pad with calendar days leading to today
+    if (dates.length < 5) {
+      const todayObj = new Date()
+      for (let i = 4; i >= 0; i--) {
+        const d = new Date()
+        d.setDate(todayObj.getDate() - i)
+        const y = d.getFullYear()
+        const m = String(d.getMonth() + 1).padStart(2, '0')
+        const day = String(d.getDate()).padStart(2, '0')
+        const dateStr = `${y}-${m}-${day}`
+        if (!dates.includes(dateStr)) {
+          dates.push(dateStr)
+        }
+      }
+      dates.sort()
+    }
+    return dates.slice(-5) // last 5 days
+  }, [attendance])
+
+  const barChartData = useMemo(() => {
+    const totalCount = employees.length || 1
+    return last5Days.map(dateStr => {
+      const dayRecords = attendance.filter(a => a.date === dateStr)
+      const presCount = dayRecords.filter(r => r.status === 'Present').length
+      const hdCount = dayRecords.filter(r => r.status === 'Half Day').length
+      const presentTotal = presCount + hdCount
+      return {
+        date: dateStr,
+        present: presentTotal,
+        percent: Math.min(100, Math.round((presentTotal / totalCount) * 100)),
+        dateLabel: formatDateLabel(dateStr)
+      }
+    })
+  }, [last5Days, attendance, employees])
+
   return (
     <div>
       <div className="page-header">
@@ -90,31 +145,41 @@ export default function Dashboard({ attendance, employees, leaves }: DashboardPr
         <p>Overview of today's attendance — {todayStr()}</p>
       </div>
 
-      <div className="dashboard-top-section">
-        {/* Left side: Stats Cards */}
-        <div className="stats-container">
-          <div className="stats-grid-2x2">
-            <div className="stat-card total">
-              <h3>{employees.length}</h3>
-              <p>Total Employees</p>
-            </div>
-            <div className="stat-card present">
-              <h3>{present}</h3>
-              <p>Present Today</p>
-            </div>
-            <div className="stat-card absent">
-              <h3>{onLeave}</h3>
-              <p>On Leave</p>
-            </div>
-            <div className="stat-card halfday">
-              <h3>{halfday}</h3>
-              <p>Half Day</p>
-            </div>
+      {/* Top row stats summary */}
+      <div className="stats-grid">
+        <div className="stat-card total">
+          <div>
+            <h3>{employees.length}</h3>
+            <p>Total Employees</p>
           </div>
+          <div className="stat-icon total"><MdPeople size={24} /></div>
         </div>
+        <div className="stat-card present">
+          <div>
+            <h3>{present}</h3>
+            <p>Present Today</p>
+          </div>
+          <div className="stat-icon present"><MdCheckCircle size={24} /></div>
+        </div>
+        <div className="stat-card absent">
+          <div>
+            <h3>{onLeave}</h3>
+            <p>On Leave</p>
+          </div>
+          <div className="stat-icon absent"><MdEventNote size={24} /></div>
+        </div>
+        <div className="stat-card halfday">
+          <div>
+            <h3>{halfday}</h3>
+            <p>Half Day</p>
+          </div>
+          <div className="stat-icon halfday"><MdAccessTime size={24} /></div>
+        </div>
+      </div>
 
-        {/* Right side: Chart Card */}
-        <div className="chart-card">
+      <div className="dashboard-top-section">
+        {/* Left Column: Today's Breakdown Donut Chart */}
+        <div className="chart-card" style={{ flex: 1 }}>
           <div className="chart-card-header">
             <h2>Today's Breakdown</h2>
           </div>
@@ -127,7 +192,7 @@ export default function Dashboard({ attendance, employees, leaves }: DashboardPr
                   cy="60"
                   r="50"
                   fill="transparent"
-                  stroke="#f1f5f9"
+                  stroke="#f2efe9"
                   strokeWidth="10"
                 />
                 
@@ -201,6 +266,33 @@ export default function Dashboard({ attendance, employees, leaves }: DashboardPr
                 <span className="legend-label">Not In Yet</span>
                 <span className="legend-value">{remaining} ({Math.round(pctRemaining)}%)</span>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Attendance Trends Bar Chart */}
+        <div className="chart-card" style={{ flex: 1 }}>
+          <div className="chart-card-header">
+            <h2>Presence Trends (Last 5 Days)</h2>
+          </div>
+          <div className="chart-card-body" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', height: '140px', padding: '0 10px', marginTop: 10 }}>
+              {barChartData.map((d, idx) => (
+                <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, gap: 6 }}>
+                  <span style={{ fontSize: 11, color: 'var(--blue-mid)', fontWeight: 700 }}>{d.percent}%</span>
+                  <div style={{ position: 'relative', width: '28px', height: '100px', background: 'var(--grey-light)', borderRadius: 6, overflow: 'hidden' }}>
+                    <div style={{
+                      position: 'absolute', bottom: 0, left: 0, right: 0,
+                      height: `${d.percent}%`,
+                      background: 'linear-gradient(to top, var(--blue-mid), var(--blue-light))',
+                      borderRadius: 0,
+                      transition: 'height 0.6s ease-in-out'
+                    }} />
+                  </div>
+                  <span style={{ fontSize: 12, color: 'var(--grey-dark)', fontWeight: 600 }}>{d.present} Pres</span>
+                  <span style={{ fontSize: 11, color: 'var(--grey-mid)' }}>{d.dateLabel}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>

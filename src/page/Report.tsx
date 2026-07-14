@@ -167,29 +167,34 @@ export default function Report({ attendance, employees, leaves, onDeleteAttendan
       ? `Report_${singleDate}.xlsx`
       : `Report_${fromDate}_to_${toDate}.xlsx`
 
-    groupedByDate.forEach(([date, rows]) => {
-      const sheetRows = rows.map((a, i) => ({
-        '#':          i + 1,
-        'Employee ID': a.emp_id,
-        'Name':       a.emp_name,
-        'Department': a.department,
-        'Date':       a.date,
-        'Check In':   a.check_in  || '—',
-        'Check Out':  a.check_out || '—',
-        'Hours':      calcHours(a.check_in, a.check_out)?.toFixed(1) ?? '—',
-        'Status':     a.status,
-        'Work Tag':   a.work_tag ? TAG_LABEL[a.work_tag] : '—',
-      }))
+    const allSheetRows: any[] = []
 
-      const ws = XLSX.utils.json_to_sheet(sheetRows)
-
-      /* Auto column width */
-      const cols = Object.keys(sheetRows[0] || {}).map(k => ({ wch: Math.max(k.length, 12) }))
-      ws['!cols'] = cols
-
-      XLSX.utils.book_append_sheet(wb, ws, date)
+    groupedByDate.forEach(([, rows]) => {
+      rows.forEach((a, i) => {
+        allSheetRows.push({
+          'Date':       a.date,
+          '#':          i + 1,
+          'Employee ID': a.emp_id,
+          'Name':       a.emp_name,
+          'Department': a.department,
+          'Check In':   a.check_in  || '—',
+          'Check Out':  a.check_out || '—',
+          'Hours':      calcHours(a.check_in, a.check_out)?.toFixed(1) ?? '—',
+          'Status':     a.status,
+          'Work Tag':   a.work_tag ? TAG_LABEL[a.work_tag] : '—',
+        })
+      })
     })
 
+    const ws = XLSX.utils.json_to_sheet(allSheetRows)
+
+    /* Auto column width */
+    if (allSheetRows.length > 0) {
+      const cols = Object.keys(allSheetRows[0]).map(k => ({ wch: Math.max(k.length, 12) }))
+      ws['!cols'] = cols
+    }
+
+    XLSX.utils.book_append_sheet(wb, ws, 'Attendance Report')
     XLSX.writeFile(wb, fileName)
   }
 

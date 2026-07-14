@@ -21,9 +21,23 @@ function todayStr() {
   return `${y}-${m}-${day}`
 }
 
-/* ── Map backend types → frontend types ── */
-function mapEmployee(e: { id: string | number; name: string; emp_id: string; email: string; phone?: string | null; department: string }): Employee {
-  return { id: String(e.id), name: e.name, emp_id: e.emp_id, email: e.email, phone: e.phone || '', department: e.department }
+function mapEmployee(e: {
+  id: string | number; name: string; emp_id: string; email: string; phone?: string | null; department: string;
+  bank_account_no?: string | null; bank_details?: string | null; address?: string | null; pan_no?: string | null; pf_no?: string | null;
+}): Employee {
+  return {
+    id: String(e.id),
+    name: e.name,
+    emp_id: e.emp_id,
+    email: e.email,
+    phone: e.phone || '',
+    department: e.department,
+    bank_account_no: e.bank_account_no || '',
+    bank_details: e.bank_details || '',
+    address: e.address || '',
+    pan_no: e.pan_no || '',
+    pf_no: e.pf_no || '',
+  }
 }
 
 function mapDepartment(d: { id: string | number; name: string }): Department {

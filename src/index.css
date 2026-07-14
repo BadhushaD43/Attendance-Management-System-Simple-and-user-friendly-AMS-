@@ -523,17 +523,37 @@ body {
 
 .stat-card {
   background: var(--white);
-  border-radius: 10px;
-  padding: 20px 22px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  border-left: 4px solid var(--blue-accent);
+  border-radius: 16px;
+  padding: 20px 24px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+  border: 1px solid var(--grey-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  transition: all 0.2s ease-in-out;
 }
-.stat-card.present { border-left-color: #27ae60; }
-.stat-card.absent  { border-left-color: #e74c3c; }
-.stat-card.halfday { border-left-color: #f39c12; }
-.stat-card.total   { border-left-color: var(--blue-accent); }
-.stat-card h3 { font-size: 30px; font-weight: 700; color: var(--blue-dark); }
-.stat-card p  { font-size: 13px; color: var(--grey-mid); margin-top: 4px; }
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.05);
+  border-color: rgba(99, 102, 241, 0.2);
+}
+.stat-card h3 { font-size: 28px; font-weight: 800; color: var(--blue-dark); line-height: 1.2; }
+.stat-card p  { font-size: 13px; color: var(--grey-mid); margin-top: 4px; font-weight: 500; }
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.stat-icon.total { background: rgba(79, 70, 229, 0.08); color: #4f46e5; }
+.stat-icon.present { background: rgba(39, 174, 96, 0.08); color: #27ae60; }
+.stat-icon.absent { background: rgba(231, 76, 60, 0.08); color: #e74c3c; }
+.stat-icon.halfday { background: rgba(243, 156, 18, 0.08); color: #f39c12; }
 
 /* ── Table Card ── */
 .table-card {
@@ -667,10 +687,13 @@ tbody td { padding: 11px 16px; font-size: 13px; color: var(--grey-dark); }
 
 .modal {
   background: var(--white);
-  border-radius: 12px;
+  border-radius: 16px;
   width: 100%;
-  max-width: 480px;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+  max-width: 540px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.18);
   animation: modalIn 0.18s ease;
 }
 
@@ -701,7 +724,11 @@ tbody td { padding: 11px 16px; font-size: 13px; color: var(--grey-dark); }
 }
 .modal-close:hover { background: var(--grey-light); color: var(--grey-dark); }
 
-.modal-body { padding: 20px 22px 22px; }
+.modal-body {
+  padding: 20px 22px 22px;
+  overflow-y: auto;
+  flex: 1;
+}
 
 /* ── Misc ── */
 .empty-state {
@@ -1007,27 +1034,36 @@ tbody td { padding: 11px 16px; font-size: 13px; color: var(--grey-dark); }
 .report-stat-card {
   display: flex;
   align-items: center;
-  gap: 14px;
+  justify-content: space-between;
+  gap: 16px;
   background: var(--white);
-  border-radius: 10px;
-  padding: 16px 18px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  border-left: 4px solid transparent;
-  transition: transform 0.15s;
+  border-radius: 16px;
+  padding: 20px 24px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+  border: 1px solid var(--grey-light);
+  transition: all 0.2s ease-in-out;
 }
-.report-stat-card:hover { transform: translateY(-2px); }
+.report-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.05);
+  border-color: rgba(99, 102, 241, 0.2);
+}
 
-.report-stat-card.blue   { border-left-color: #4f46e5; }
-.report-stat-card.green  { border-left-color: #16a34a; }
-.report-stat-card.yellow { border-left-color: #d97706; }
-.report-stat-card.red    { border-left-color: #dc2626; }
-.report-stat-card.indigo { border-left-color: #7c3aed; }
+.report-stat-card .rsc-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
 
-.report-stat-card.blue   .rsc-icon { color: #4f46e5; }
-.report-stat-card.green  .rsc-icon { color: #16a34a; }
-.report-stat-card.yellow .rsc-icon { color: #d97706; }
-.report-stat-card.red    .rsc-icon { color: #dc2626; }
-.report-stat-card.indigo .rsc-icon { color: #7c3aed; }
+.report-stat-card.blue   .rsc-icon { background: rgba(79, 70, 229, 0.08); color: #4f46e5; }
+.report-stat-card.green  .rsc-icon { background: rgba(22, 163, 74, 0.08); color: #16a34a; }
+.report-stat-card.yellow .rsc-icon { background: rgba(217, 119, 6, 0.08); color: #d97706; }
+.report-stat-card.red    .rsc-icon { background: rgba(220, 38, 38, 0.08); color: #dc2626; }
+.report-stat-card.indigo .rsc-icon { background: rgba(124, 58, 237, 0.08); color: #7c3aed; }
 
 .rsc-icon {
   flex-shrink: 0;
